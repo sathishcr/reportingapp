@@ -1,8 +1,8 @@
 class ReportsController < ApplicationController
 	before_filter :signed_in_user
+	before_filter :before_creating_reports, only: :create
 
 	def create
-		@report = current_user.reports.build(params[:report])
 		if @report.save
 			flash[:success] = "Report posted!"
 			redirect_to root_url
@@ -12,8 +12,10 @@ class ReportsController < ApplicationController
 	end
 
 	def destroy
-		@report.destroy
-		render @root_url
 
 	end
+	private
+		def before_creating_reports
+			@report = current_user.reports.build(params[:report])
+		end
 end

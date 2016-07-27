@@ -3,18 +3,20 @@ class UsersController < ApplicationController
   before_filter :signed_in_user, only: [:index,:edit, :update,:following,:followers]
   before_filter :correct_user, only: [:edit,:update,:see_reports]
   before_filter :admin_user, only: [:destroy]
+
+  before_filter :get_users_from_params_hash, only: [:show, :destroy, :following, :followers, :see_reports]
+  before_filter :get_all_users, only: :index
+  before_filter :get_new_user, only: :create
   
   def new
   	@user=User.new
   end
 
   def show 
-  	@user = User.find(params[:id])
     @reports = @user.reports
   end
 
   def create
-  	@user=User.new(params[:user])
   	if @user.save
       sign_in @user
       flash[:success]= "Welcome to the reporting app"
@@ -42,11 +44,10 @@ class UsersController < ApplicationController
   end
 
   def index
-    @users = User.all
   end
 
   def destroy
-    User.find(params[:id]).destroy
+    @user.destroy
     flash[:success] = "User Destroyed."
     redirect_to users_url
   end
@@ -58,21 +59,18 @@ class UsersController < ApplicationController
 
   def following
     @title = "Following"
-    @user = User.find(params[:id])
     @users = @user.followed_users
     render 'show_follow'
   end
 
   def followers
     @title = "Followers"
-    @user = User.find(params[:id])
     @users = @user.followers
     render 'show_follow'
   end
 
   def see_reports
     @title = "Last Report"
-    @user = User.find(params[:id])
     @users=@user.followed_users
     
     render 'shared/see_reports'
@@ -81,7 +79,7 @@ class UsersController < ApplicationController
   private 
 
     def correct_user
-      @user = User.find(params[:id])
+      @user = User.where(id: params[:id]).first
       redirect_to root_url unless current_user?(@user)
     end
 
@@ -89,4 +87,19 @@ class UsersController < ApplicationController
       redirect_to root_url unless current_user.admin?
     end
 
+    def get_users_from_params_hash
+      @user = User.where(id: params[:id]).first
+      unless @user
+        flash[:notice]="User not found!! Returned to home page."
+        redirect_to root_url
+      end
+    end
+
+    def get_all_users
+      @users = User.all
+    end
+
+    def get_new_user
+      @user = User.new(params[:user])
+    end
 end

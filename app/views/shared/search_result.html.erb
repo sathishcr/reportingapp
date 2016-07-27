@@ -10,6 +10,9 @@
    <section>
 				<%= link_to(gravatar_for(@ret,50), @ret) %>
 				<%= link_to @ret.name, @ret %>
+				<% if current_user.admin? && !current_user?(@ret) %>
+					<%= link_to "delete",@ret,method: :delete,data: {confirm: "you sure? "} %>
+				<% end %>
 		</section>
 </ul>
 <% else %>
